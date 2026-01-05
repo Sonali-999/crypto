@@ -1,0 +1,78 @@
+{
+  "queue": [
+    {
+      "token": "A-004",
+      "patientName": "krishna",
+      "mobileNumber": "1234567890",
+      "doctorId": "3",
+      "appointmentDate": "2025-09-21",
+      "status": "Waiting",
+      "createdAt": "2025-09-21T10:55:38.561Z"
+    },
+    {
+      "token": "A-005",
+      "patientName": "dinesh",
+      "mobileNumber": "9440022215",
+      "doctorId": "3",
+      "appointmentDate": "2025-09-21",
+      "status": "Waiting",
+      "createdAt": "2025-09-21T10:56:12.785Z"
+    },
+    {
+      "token": "A-002",
+      "patientName": "saketh",
+      "mobileNumber": "5678912345",
+      "doctorId": "3",
+      "appointmentDate": "2025-09-22",
+      "status": "Waiting",
+      "createdAt": "2025-09-21T10:57:19.770Z"
+    },
+    {
+      "token": "A-003",
+      "patientName": "ramesh",
+      "mobileNumber": "3456789012",
+      "doctorId": "3",
+      "appointmentDate": "2025-09-22",
+      "status": "Waiting",
+      "createdAt": "2025-09-21T10:58:44.287Z"
+    },
+    {
+      "token": "A-006",
+      "patientName": "saketh",
+      "mobileNumber": "12345678899",
+      "doctorId": "4",
+      "appointmentDate": "2025-09-21",
+      "status": "Waiting",
+      "createdAt": "2025-09-21T12:55:36.011Z"
+    },
+    {
+      "token": "A-001",
+      "patientName": "diya",
+      "mobileNumber": "4789075234",
+      "doctorId": "3",
+      "appointmentDate": "2025-09-24",
+      "status": "Completed",
+      "createdAt": "2025-09-24T21:23:58.576Z",
+      "completedAt": "2025-09-24T21:24:43.153Z"
+    },
+    {
+      "token": "A-001",
+      "patientName": "diya",
+      "mobileNumber": "4789075234",
+      "doctorId": "1",
+      "appointmentDate": "2025-09-27",
+      "status": "Waiting",
+      "createdAt": "2025-09-25T14:25:53.027Z"
+    }
+  ],
+  "tokenCounter": 5,
+  "lastResetDate": "Sun Sep 21 2025",
+  "dailyTokens": {
+    "2025-09-21": 7,
+    "2025-09-22": 4,
+    "Sun Sep 21 2025": 0,
+    "2025-09-24": 1,
+    "2025-09-27": 1
+  },
+  "lastResetCheck": "Sun Sep 21 2025"
+}

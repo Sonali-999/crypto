@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediQueue - Admin Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        .login-header {
+            background: #2563eb;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .login-form {
+            padding: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-login:hover {
+            background: #1d4ed8;
+        }
+        .btn-login:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #ef4444;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+        .success-message {
+            color: #10b981;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6b7280;
+        }
+        .password-container {
+            position: relative;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+            color: #6b7280;
+        }
+        .register-link a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .success-box {
+            background-color: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1 class="text-2xl font-bold"><i class="fas fa-lock mr-2"></i>Admin Login</h1>
+            <p class="mt-2">MediQueue Management System</p>
+        </div>
+        
+        <div class="login-form">
+            <div class="info-box">
+                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                <span>Default admin account: <strong>admin</strong> / <strong>admin123</strong></span>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                        <span class="password-toggle" id="passwordToggle">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-login" id="loginButton">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </button>
+                
+                <div class="error-message" id="errorMessage">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span id="errorText"></span>
+                </div>
+                
+                <div class="success-message" id="successMessage">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Login successful! Redirecting...
+                </div>
+            </form>
+            
+            <div class="register-link">
+                <p>Need to create a new admin account? <a href="#" id="showRegisterForm">Click here</a></p>
+            </div>
+            
+            <div class="mt-6 text-center text-sm text-gray-500 hidden" id="registerSection">
+                <h3 class="font-semibold mb-2">Create New Admin Account</h3>
+                
+                <div id="authStatusBox">
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                        <span id="authStatusMessage">You must be logged in as an admin to register new users</span>
+                    </div>
+                </div>
+                
+                <form id="registerForm">
+                    <div class="form-group">
+                        <input type="text" id="regName" class="form-input" placeholder="Full Name (e.g., Krishna Karthik)" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="regUsername" class="form-input" placeholder="Username (e.g., Krishna415)" required>
+                    </div>
+                    <div class="form-group">
+                        <div class="password-container">
+                            <input type="password" id="regPassword" class="form-input" placeholder="Password (min. 6 characters)" required>
+                            <span class="password-toggle" id="regPasswordToggle">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-login" id="registerButton">
+                        <i class="fas fa-user-plus mr-2"></i> Create Admin Account
+                    </button>
+                </form>
+                <div class="error-message" id="regErrorMessage">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span id="regErrorText"></span>
+                </div>
+                <div class="success-message" id="regSuccessMessage">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span id="regSuccessText"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const successMessage = document.getElementById('successMessage');
+            const loginButton = document.getElementById('loginButton');
+            
+            const registerSection = document.getElementById('registerSection');
+            const showRegisterForm = document.getElementById('showRegisterForm');
+            const registerForm = document.getElementById('registerForm');
+            const regNameInput = document.getElementById('regName');
+            const regUsernameInput = document.getElementById('regUsername');
+            const regPasswordInput = document.getElementById('regPassword');
+            const regPasswordToggle = document.getElementById('regPasswordToggle');
+            const regErrorMessage = document.getElementById('regErrorMessage');
+            const regErrorText = document.getElementById('regErrorText');
+            const regSuccessMessage = document.getElementById('regSuccessMessage');
+            const regSuccessText = document.getElementById('regSuccessText');
+            const registerButton = document.getElementById('registerButton');
+            const authStatusMessage = document.getElementById('authStatusMessage');
+            const authStatusBox = document.getElementById('authStatusBox');
+            
+            let isAuthenticated = false;
+            let sessionToken = null;
+            let currentUsername = null;
+            
+            // Check if already logged in
+            checkAuthStatus();
+            
+            // Toggle password visibility
+            passwordToggle.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    passwordToggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    passwordInput.type = 'password';
+                    passwordToggle.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+            
+            regPasswordToggle.addEventListener('click', function() {
+                if (regPasswordInput.type === 'password') {
+                    regPasswordInput.type = 'text';
+                    regPasswordToggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    regPasswordInput.type = 'password';
+                    regPasswordToggle.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+            
+            // Show register form
+            showRegisterForm.addEventListener('click', function(e) {
+                e.preventDefault();
+                registerSection.classList.remove('hidden');
+                checkAuthStatus();
+            });
+            
+            // Handle login form submission
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value;
+                
+                // Reset messages
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                
+                // Validate inputs
+                if (!username || !password) {
+                    showError('Please fill in all fields');
+                    return;
+                }
+                
+                // Change button to loading state
+                loginButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging in...';
+                loginButton.disabled = true;
+                
+                try {
+                    // Send login request to server
+                    const response = await fetch('/api/admin-login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        successMessage.style.display = 'block';
+                        
+                        console.log('Login successful');
+                        
+                        // Store authentication status
+                        isAuthenticated = true;
+                        sessionToken = data.sessionToken;
+                        currentUsername = data.username;
+                        
+                        // Store in sessionStorage
+                        sessionStorage.setItem('adminAuthenticated', 'true');
+                        sessionStorage.setItem('username', data.username);
+                        sessionStorage.setItem('name', data.name);
+                        sessionStorage.setItem('sessionToken', data.sessionToken);
+                        
+                        // Update auth status message
+                        updateAuthStatusMessage();
+                        
+                        // Redirect to admin panel after short delay
+                        setTimeout(() => {
+                            console.log('Redirecting to admin panel...');
+                            window.location.href = '/admin';
+                        }, 1500);
+                    } else {
+                        // Login failed
+                        showError(data.message || 'Invalid username or password');
+                        resetLoginButton();
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showError('Network error. Please try again.');
+                    resetLoginButton();
+                }
+            });
+            
+            // Handle register form submission
+            registerForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const name = regNameInput.value.trim();
+                const username = regUsernameInput.value.trim();
+                const password = regPasswordInput.value;
+                
+                // Reset messages
+                regErrorMessage.style.display = 'none';
+                regSuccessMessage.style.display = 'none';
+                
+                // Validate inputs
+                if (!name || !username || !password) {
+                    showRegError('Please fill in all fields');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    showRegError('Password must be at least 6 characters');
+                    return;
+                }
+                
+                // Change button to loading state
+                registerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Account...';
+                registerButton.disabled = true;
+                
+                try {
+                    // Get session token from storage or variable
+                    const token = sessionToken || sessionStorage.getItem('sessionToken') || getCookie('sessionToken');
+                    
+                    if (!token) {
+                        showRegError('You must be logged in to register new users. Please log in first.');
+                        resetRegisterButton();
+                        return;
+                    }
+                    
+                    // Send registration request to server with session token
+                    const response = await fetch('/api/admin-register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Session-Token': token
+                        },
+                        body: JSON.stringify({ name, username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showRegSuccess('Admin account created successfully! You can now login with the new account.');
+                        registerForm.reset();
+                    } else {
+                        showRegError(data.error || 'Account creation failed');
+                    }
+                    
+                    resetRegisterButton();
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    showRegError('Network error. Please try again.');
+                    resetRegisterButton();
+                }
+            });
+            
+            // Check if user is already authenticated
+            async function checkAuthStatus() {
+                try {
+                    const response = await fetch('/api/auth-status');
+                    const data = await response.json();
+                    
+                    if (data.isAuthenticated) {
+                        // User is already logged in
+                        isAuthenticated = true;
+                        currentUsername = data.username;
+                        sessionToken = getCookie('sessionToken');
+                        
+                        // Store in sessionStorage
+                        sessionStorage.setItem('adminAuthenticated', 'true');
+                        sessionStorage.setItem('username', data.username);
+                        sessionStorage.setItem('name', data.name);
+                        sessionStorage.setItem('sessionToken', sessionToken);
+                        
+                        // Update auth status message
+                        updateAuthStatusMessage();
+                    }
+                } catch (error) {
+                    console.log('Auth check failed:', error);
+                    // Continue with normal login flow
+                }
+            }
+            
+            // Update authentication status message
+            function updateAuthStatusMessage() {
+                if (isAuthenticated) {
+                    authStatusBox.innerHTML = `
+                        <div class="success-box">
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                            <span>Logged in as: <strong>${currentUsername}</strong>. You can register new admin accounts.</span>
+                        </div>
+                    `;
+                } else {
+                    authStatusBox.innerHTML = `
+                        <div class="warning-box">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                            <span>You must be logged in as an admin to register new users</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Helper function to get cookie value
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            
+            function showError(message) {
+                errorText.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            function showRegError(message) {
+                regErrorText.textContent = message;
+                regErrorMessage.style.display = 'block';
+            }
+            
+            function showRegSuccess(message) {
+                regSuccessText.textContent = message;
+                regSuccessMessage.style.display = 'block';
+            }
+            
+            function resetLoginButton() {
+                loginButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Login';
+                loginButton.disabled = false;
+            }
+            
+            function resetRegisterButton() {
+                registerButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Create Admin Account';
+                registerButton.disabled = false;
+            }
+            
+            // Focus on username field when page loads
+            usernameInput.focus();
+        });
+    </script>
+</body>
+</html>

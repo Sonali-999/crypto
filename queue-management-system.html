@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediQueue - Patient System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .status-waiting {
+            color: #eab308;
+            font-weight: 500;
+        }
+        .status-completed {
+            color: #22c55e;
+            font-weight: 500;
+        }
+        .token-card {
+            transition: all 0.3s ease;
+        }
+        .token-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+        .notification.success {
+            background-color: #10b981;
+        }
+        .notification.error {
+            background-color: #ef4444;
+        }
+        .queue-item {
+            transition: background-color 0.3s;
+        }
+        .queue-item-highlight {
+            background-color: #f0f9ff;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { background-color: #f0f9ff; }
+            50% { background-color: #e0f2fe; }
+            100% { background-color: #f0f9ff; }
+        }
+        .future-appointment {
+            background-color: #f9fafb;
+            opacity: 0.8;
+        }
+        .today-appointment {
+            background-color: white;
+        }
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold"><i class="fas fa-hospital mr-2"></i>MediQueue</h1>
+            <div class="flex items-center space-x-4">
+                <span id="currentDate" class="text-blue-100"></span>
+                <button id="adminBtn" class="bg-white text-blue-600 px-4 py-2 rounded-md font-semibold">
+                    <i class="fas fa-user-cog mr-2"></i>Admin Panel
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Appointment Booking -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Book Your Appointment</h2>
+                <form id="appointmentForm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="patientName" class="block text-gray-700 mb-2">Full Name</label>
+                            <input type="text" id="patientName" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="mobileNumber" class="block text-gray-700 mb-2">Mobile Number</label>
+                            <input type="tel" id="mobileNumber" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="doctor" class="block text-gray-700 mb-2">Select Doctor</label>
+                            <select id="doctor" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="" disabled selected>Choose a doctor</option>
+                                <option value="1">Dr. Sarah - Cardiology</option>
+                                <option value="2">Dr. Michael - Orthopedics</option>
+                                <option value="3">Dr. Emily - Pediatrics</option>
+                                <option value="4">Dr. Robert - Neurology</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="appointmentDate" class="block text-gray-700 mb-2">Appointment Date</label>
+                            <input type="date" id="appointmentDate" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition duration-300">
+                            <i class="fas fa-ticket-alt mr-2"></i>Get Queue Token
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Today's Queue Stats -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Today's Queue</h2>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg text-center">
+                        <p class="text-sm text-blue-600">Total Tokens</p>
+                        <h3 class="text-3xl font-bold text-blue-800" id="totalTokens">0</h3>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg text-center">
+                        <p class="text-sm text-yellow-600">Waiting</p>
+                        <h3 class="text-3xl font-bold text-yellow-800" id="waitingTokens">0</h3>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-semibold mb-2">Current Token</h3>
+                    <div class="text-4xl font-bold text-center text-blue-600" id="currentToken">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Info -->
+        <div id="tokenInfo" class="bg-white rounded-lg shadow-lg p-6 mt-6 hidden">
+            <div class="text-center">
+                <i class="fas fa-ticket-alt text-5xl text-blue-600 mb-4"></i>
+                <h2 class="text-2xl font-bold mb-2 text-gray-800">Your Queue Token</h2>
+                <div id="tokenNumber" class="text-5xl font-bold text-blue-600 mb-4">A-12</div>
+                <div class="bg-blue-100 p-4 rounded-md mb-4">
+                    <p class="text-blue-800"><i class="fas fa-info-circle mr-2"></i>You will receive an SMS notification when there are 2 patients ahead of you.</p>
+                </div>
+                <button id="cancelToken" class="bg-red-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600 transition duration-300">
+                    <i class="fas fa-times-circle mr-2"></i>Cancel Appointment
+                </button>
+            </div>
+        </div>
+
+        <!-- Queue Tabs -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <div class="flex border-b mb-4">
+                <button id="todayTab" class="tab-active py-2 px-4 mr-2">Today's Appointments</button>
+                <button id="allTab" class="py-2 px-4">All Appointments</button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="py-3 px-4 text-left font-semibold">Token</th>
+                            <th class="py-3 px-4 text-left font-semibold">Patient Name</th>
+                            <th class="py-3 px-4 text-left font-semibold">Doctor</th>
+                            <th class="py-3 px-4 text-left font-semibold">Appointment Date</th>
+                            <th class="py-3 px-4 text-left font-semibold">Status</th>
+                            <th class="py-3 px-4 text-left font-semibold">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queueTableBody">
+                        <!-- Queue items will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyQueueMessage" class="text-center py-8 text-gray-500 hidden">
+                <i class="fas fa-users-slash text-4xl mb-3"></i>
+                <p>No appointments found</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white p-6 mt-10">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2025 MediQueue. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // API endpoints
+        const API_BASE = 'http://localhost:3000/api';
+        const APPOINTMENT_API = `${API_BASE}/add-appointment`;
+        const QUEUE_API = `${API_BASE}/queue`;
+
+        // DOM Elements
+        const appointmentForm = document.getElementById('appointmentForm');
+        const tokenInfo = document.getElementById('tokenInfo');
+        const currentDateElement = document.getElementById('currentDate');
+        const totalTokensElement = document.getElementById('totalTokens');
+        const waitingTokensElement = document.getElementById('waitingTokens');
+        const currentTokenElement = document.getElementById('currentToken');
+        const queueTableBody = document.getElementById('queueTableBody');
+        const emptyQueueMessage = document.getElementById('emptyQueueMessage');
+        const adminBtn = document.getElementById('adminBtn');
+        const todayTab = document.getElementById('todayTab');
+        const allTab = document.getElementById('allTab');
+        const cancelTokenBtn = document.getElementById('cancelToken');
+
+        // Set today's date as default for appointment date and display
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        currentDateElement.textContent = formattedDate;
+        
+        const todayISO = today.toISOString().split('T')[0];
+        document.getElementById('appointmentDate').value = todayISO;
+        document.getElementById('appointmentDate').min = todayISO;
+
+        // State variables
+        let currentToken = null;
+        let allAppointments = [];
+        let viewMode = 'today'; // 'today' or 'all'
+
+        // Event Listeners
+        appointmentForm.addEventListener('submit', handleAppointmentSubmit);
+        cancelTokenBtn.addEventListener('click', handleCancelToken);
+        adminBtn.addEventListener('click', () => window.location.href = '/login');
+        todayTab.addEventListener('click', () => switchView('today'));
+        allTab.addEventListener('click', () => switchView('all'));
+
+        // Load initial queue data
+        loadQueueData();
+
+        // Function to handle appointment submission
+        async function handleAppointmentSubmit(e) {
+            e.preventDefault();
+            const patientName = document.getElementById('patientName').value;
+            const mobileNumber = document.getElementById('mobileNumber').value;
+            const doctorSelect = document.getElementById('doctor');
+            const doctorId = doctorSelect.value;
+            const appointmentDate = document.getElementById('appointmentDate').value;
+
+            try {
+                // Add appointment to queue via API
+                const response = await fetch(APPOINTMENT_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        patientName,
+                        mobileNumber,
+                        doctorId,
+                        appointmentDate
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to add appointment');
+                }
+                
+                const data = await response.json();
+                
+                // Show token info
+                document.getElementById('tokenNumber').textContent = data.patient.token;
+                appointmentForm.classList.add('hidden');
+                tokenInfo.classList.remove('hidden');
+                currentToken = data.patient.token;
+                
+                showNotification('Appointment booked successfully!', 'success');
+                
+                // Refresh the queue display
+                loadQueueData();
+            } catch (error) {
+                console.error('Error adding appointment:', error);
+                showNotification('Failed to add appointment. Please try again.', 'error');
+            }
+        }
+
+        // Function to handle token cancellation
+        function handleCancelToken() {
+            tokenInfo.classList.add('hidden');
+            appointmentForm.classList.remove('hidden');
+            appointmentForm.reset();
+            currentToken = null;
+            showNotification('Appointment cancelled', 'success');
+        }
+
+        // Function to switch between today and all views
+        function switchView(mode) {
+            viewMode = mode;
+            
+            // Update tab styles
+            if (mode === 'today') {
+                todayTab.classList.add('tab-active');
+                allTab.classList.remove('tab-active');
+            } else {
+                allTab.classList.add('tab-active');
+                todayTab.classList.remove('tab-active');
+            }
+            
+            // Refresh the display
+            displayQueue(allAppointments);
+        }
+
+        // Function to load queue data
+        async function loadQueueData() {
+            try {
+                const response = await fetch(QUEUE_API);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allAppointments = data.queue;
+                    
+                    // Filter to show only today's appointments for stats
+                    const todayAppointments = allAppointments.filter(patient => {
+                        const appointmentDate = new Date(patient.appointmentDate).toDateString();
+                        return appointmentDate === today.toDateString();
+                    });
+                    
+                    // Update stats
+                    totalTokensElement.textContent = todayAppointments.length;
+                    const waitingCount = todayAppointments.filter(p => p.status === 'Waiting').length;
+                    waitingTokensElement.textContent = waitingCount;
+                    
+                    // Find the current token (the first waiting token)
+                    const currentTokenPatient = todayAppointments.find(p => p.status === 'Waiting');
+                    currentTokenElement.textContent = currentTokenPatient ? currentTokenPatient.token : '-';
+                    
+                    // Display the queue based on current view mode
+                    displayQueue(allAppointments);
+                } else {
+                    throw new Error('Failed to fetch queue data');
+                }
+            } catch (error) {
+                console.error('Error loading queue data:', error);
+                showNotification('Failed to load queue data', 'error');
+            }
+        }
+
+        // Function to display the queue
+        function displayQueue(queue) {
+            // Clear previous queue data
+            queueTableBody.innerHTML = '';
+            
+            // Filter appointments based on view mode
+            let filteredQueue = queue;
+            if (viewMode === 'today') {
+                filteredQueue = queue.filter(patient => {
+                    const appointmentDate = new Date(patient.appointmentDate).toDateString();
+                    return appointmentDate === today.toDateString();
+                });
+            }
+            
+            if (filteredQueue.length === 0) {
+                emptyQueueMessage.classList.remove('hidden');
+                return;
+            }
+            
+            emptyQueueMessage.classList.add('hidden');
+            
+            // Sort queue by appointment date and then by token number
+            const sortedQueue = [...filteredQueue].sort((a, b) => {
+                // First sort by appointment date
+                const dateA = new Date(a.appointmentDate);
+                const dateB = new Date(b.appointmentDate);
+                
+                if (dateA < dateB) return -1;
+                if (dateA > dateB) return 1;
+                
+                // If same date, sort by token number
+                const aNum = parseInt(a.token.split('-')[1]);
+                const bNum = parseInt(b.token.split('-')[1]);
+                return aNum - bNum;
+            });
+            
+            // Add each patient to the queue table
+            sortedQueue.forEach(patient => {
+                const row = document.createElement('tr');
+                
+                // Check if this is the current user's token
+                const isUsersToken = currentToken === patient.token;
+                
+                // Apply appropriate styling
+                const appointmentDate = new Date(patient.appointmentDate);
+                const isToday = appointmentDate.toDateString() === today.toDateString();
+                
+                if (isToday) {
+                    row.className = `queue-item today-appointment ${patient.status === 'Waiting' ? 'hover:bg-gray-50' : 'opacity-70'}`;
+                    if (isUsersToken && patient.status === 'Waiting') {
+                        row.classList.add('queue-item-highlight');
+                    }
+                } else {
+                    row.className = `queue-item future-appointment ${patient.status === 'Waiting' ? 'hover:bg-gray-50' : 'opacity-70'}`;
+                }
+                
+                // Format the time
+                const createdAt = new Date(patient.createdAt);
+                const timeString = createdAt.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                // Format the appointment date
+                const appointmentDateStr = appointmentDate.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+                
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-mono">${patient.token}</td>
+                    <td class="py-3 px-4">${patient.patientName}</td>
+                    <td class="py-3 px-4">${getDoctorName(patient.doctorId)}</td>
+                    <td class="py-3 px-4">${appointmentDateStr}</td>
+                    <td class="py-3 px-4">
+                        <span class="${patient.status === 'Waiting' ? 'status-waiting' : 'status-completed'}">
+                            <i class="fas ${patient.status === 'Waiting' ? 'fa-clock' : 'fa-check-circle'} mr-1"></i>
+                            ${patient.status}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">${timeString}</td>
+                `;
+                
+                queueTableBody.appendChild(row);
+            });
+        }
+
+        // Helper function to get doctor name from ID
+        function getDoctorName(doctorId) {
+            const doctors = {
+                '1': 'Dr. Sarah - Cardiology',
+                '2': 'Dr. Michael - Orthopedics',
+                '3': 'Dr. Emily - Pediatrics',
+                '4': 'Dr. Robert - Neurology'
+            };
+            return doctors[doctorId] || 'Unknown Doctor';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            // Remove any existing notifications
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Auto-refresh queue every 30 seconds
+        setInterval(loadQueueData, 30000);
+    </script>
+</body>
+</html>
